@@ -1,7 +1,6 @@
-import React from "react";
-import logo from "./logo.svg";
+import axios from "axios";
 import "./App.css";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 // @ts-ignore
 import { useQuery } from "react-query";
 
@@ -10,7 +9,8 @@ import { LinearProgress, Grid, Badge } from "@mui/material";
 import { AddShoppingCart } from "@mui/icons-material";
 
 // styles
-import { Wrapper } from "./App.styles";
+import { StyledButton, Wrapper } from "./App.styles";
+import Item from "./components/Item";
 
 // Types
 export type CartItemType = {
@@ -20,36 +20,62 @@ export type CartItemType = {
   image: string;
   price: number;
   title: string;
-  amount: number;
+  amount?: number;
 };
 
-const getProducts = async (): Promise<CartItemType[]> => {
-  return await (await fetch("https://fakestoreapi.com/products")).json();
-};
+const getProducts = async (): Promise<CartItemType[]> =>
+  await (await fetch("https://fakestoreapi.com/products")).json();
 
 const App = () => {
-  const { data, isLoading, error } = useQuery<CartItemType[]>(
-    "products",
-    getProducts
-  );
-  console.log(error);
+  // const result = useQuery<CartItemType[]>("products", () =>
+  //   axios.get("https://fakestoreapi.com/products")
+  // );
+  // // console.log(data, isLoading, error);
+  // console.log(result);
+
+  const [items, setItems] = useState<CartItemType[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isCartOpen, setIsCartOpen] = useState(false as boolean);
+
+  useEffect(() => {
+    fetch("https://fakestoreapi.com/products")
+      .then((res) => res.json())
+      .then((data) => {
+        setItems(data);
+        setIsLoading(false);
+      });
+  }, []);
+
+  const getTotalItems = (items: CartItemType[]) => null;
+  // items.reduce((ack: number, item: CartItemType) => ack + item, 0);
+  const handleAddToCart = (clickedItem: CartItemType) => null;
+  const handleRemoveFromCart = () => null;
+
+  if (isLoading) return <LinearProgress />;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Wrapper>
+      <Drawer
+        anchor="right"
+        open={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+      >
+        Cart details will be here...
+      </Drawer>
+
+      <StyledButton onClick={() => setIsCartOpen(true)}>
+        <Badge badgeContent={5} color="error">
+          <AddShoppingCart />
+        </Badge>
+      </StyledButton>
+      <Grid container spacing={3}>
+        {items?.map((item) => (
+          <Grid item key={item.id} xs={12} sm={4}>
+            <Item item={item} handleAddToCart={handleAddToCart} />
+          </Grid>
+        ))}
+      </Grid>
+    </Wrapper>
   );
 };
 
